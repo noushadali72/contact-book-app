@@ -12,6 +12,7 @@ class Contact extends Model
         'email',
         'phone',
         'notes',
+        'address',
         'group_id'
     ];
     
