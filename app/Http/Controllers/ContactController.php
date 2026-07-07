@@ -68,6 +68,7 @@ class ContactController extends Controller
     public function edit(string $id)
     {
         $contact = Contact::find($id);
+        
         $groups = Group::limit(20)->get();
         if(!$contact){
             return abort(404,"Contact Not Found!");
@@ -83,7 +84,7 @@ class ContactController extends Controller
         $data = $request->validated();
 
         $contact = Contact::find($request->id);
-        
+
         $contact->update($data);
         $contact->save();
 

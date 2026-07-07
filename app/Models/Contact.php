@@ -26,7 +26,7 @@ class Contact extends Model
         ];
     }
 
-    public function searchScope(Builder $query, ?string $term){
+    public function scopeSearch(Builder $query, ?string $term){
         if(empty($term)){
             return $query;
         }

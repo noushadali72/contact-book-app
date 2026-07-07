@@ -156,23 +156,23 @@
             }
 
 
-            // $("#name").on("input blur",validateName);
-            // $("#email").on("input blur",validateEmail);
-            // $("#phone").on("input blur",validatePhone);
-            // $("#notes").on("input blur",validateNotes);
-            // $("#group").on("input blur",validateGroup);
-            // $("#address").on("input blur",validateAddress);
+            $("#name").on("input blur",validateName);
+            $("#email").on("input blur",validateEmail);
+            $("#phone").on("input blur",validatePhone);
+            $("#notes").on("input blur",validateNotes);
+            $("#group").on("input blur",validateGroup);
+            $("#address").on("input blur",validateAddress);
 
 
             $("#form").on("submit",function(e){
                 e.preventDefault();
                 isValid = true;
-                // validateName();
-                // validateEmail();
-                // validatePhone();
-                // validateNotes();
-                // validateGroup();
-                // validateAddress();
+                validateName();
+                validateEmail();
+                validatePhone();
+                validateNotes();
+                validateGroup();
+                validateAddress();
 
                 if(isValid){
                     let form = document.getElementById("form");
