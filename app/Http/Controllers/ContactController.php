@@ -13,11 +13,39 @@ class ContactController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $contacts = Contact::paginate(10);
+        $searchQuery = $request->input("searchQuery")??"";
+        $sortBy = $request->input("sortBy")??"";
 
-        return view("contacts.list",compact('contacts'));
+        if($sortBy=="of"){
+            $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("created_at","asc")->paginate(10);
+            
+         }else if($sortBy=="lf"){
+                
+                $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("created_at","desc")->paginate(10);
+                
+             }else if($sortBy=="asc"){
+                    
+                    
+                    $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("name","asc")->paginate(10);
+                    
+             }else if("desc"){
+                
+                    $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("name","desc")->paginate(10);
+                
+            }
+
+        if($request->ajax()){
+            return response()->json([
+                'status'=>200,
+                "searchQuery"=>$searchQuery,
+                "sortBy"=> $sortBy,
+                'message'=>'Data Fetched Successfully!',
+                'contacts'=>$contacts
+            ]);
+        }
+        return view("contacts.list", compact('contacts'));
     }
 
     /**
@@ -103,11 +131,11 @@ class ContactController extends Controller
         if(!$contact){
             return response()->json([
                 'status'=>404,
-                'message'=>'Not Found!'
-                ]);
+                'message'=>'Contact Not Found!'
+                ],404);
                 }
                 
-            $contact->delete();
+            // $contact->delete();
             return response()->json([
                 'status'=>200,
                 'message'=>'Contact Deleted Successfully!'

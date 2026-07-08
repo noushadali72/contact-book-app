@@ -9,4 +9,4 @@ Route::get('/edit/{id}',[ContactController::class,'edit']);
 
 Route::post('/store',[ContactController::class,'store'])->name("contacts.store");
 Route::put('/update',[ContactController::class,'update'])->name("contacts.update");
-Route::get('/delete/{id}',[ContactController::class,'destroy'])->name("contacts.delete");
+Route::delete('/delete/{id}',[ContactController::class,'destroy'])->name("contacts.delete");

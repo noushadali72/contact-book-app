@@ -73,6 +73,7 @@
             </form>
         </div>
     </div>
+    <div id="updateToastContainer"></div>
 @endsection
 
 @section('scripts')
@@ -188,7 +189,6 @@
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                 },
                         success: function(res){
-                            console.log(res);
                                 $("#nameErr").text("");
                                 $("#emailErr").text("");
                                 $("#phoneErr").text("");
@@ -196,9 +196,10 @@
                                 $("#notesErr").text("");
                                 $("#groupErr").text("");
 
-                                $("#message").html(`<div class="alert alert-success" role="alert">
-                                ${res.message}
-                                    </div>`);
+                                // $("#message").html(`<div class="alert alert-success" role="alert">
+                                // ${res.message}
+                                //     </div>`);
+                                    showUpdateToast("success",res.message);
                         },
                         error: function(xhr,status,error){
                           
@@ -214,9 +215,11 @@
                         
                             }else{
                                
-                                $("#message").html(`<div class="alert alert-danger" role="alert">
-                                    Unable to Update Contact Try Again!
-                                </div>`);
+                                // $("#message").html(`<div class="alert alert-danger" role="alert">
+                                //     Unable to Update Contact Try Again!
+                                // </div>`);
+
+                                showUpdateToast("danger","Unable to Update Contact Try Again!");
                             }
                          
                         }
@@ -225,6 +228,24 @@
             })
 
         });
+
+            function showUpdateToast(type,message){
+        $("#updateToastContainer").html(`
+        
+            <div id="toast" class="toast position-fixed bottom-0 end-0 m-5 p-3 align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+  <div class="d-flex">
+    <div class="toast-body">
+    ${message}
+    </div>
+    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+  </div>
+</div>
+        
+        `);
+
+
+        $(`#toast`).toast("show");
+    }
 
     </script>
 @endsection

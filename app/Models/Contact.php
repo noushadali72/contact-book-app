@@ -3,10 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+
 
 class Contact extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'name',
         'email',
@@ -26,13 +31,17 @@ class Contact extends Model
         ];
     }
 
-    public function scopeSearch(Builder $query, ?string $term){
+    #[Scope]
+    protected function scopeSearch(Builder $query, ?string $term):void {
         if(empty($term)){
-            return $query;
+            return;
         }
-        return $query->where(function(Builder $subQuery) use ($term){
-            $subQuery->whereLike('name',$term)->orWhereLike('email',$term)->orWhereLike('phone',$term);
+        $query->where(function(Builder $subQuery) use($term){
+             $subQuery->where('name','like',"%{$term}%")->orWhere('email','like',"%{$term}%")->orWhereHas('group',function($relationQuery) use($term){
+                $relationQuery->where('name','like',"%{$term}%");
+             });
         });
+      
     }
 
     public function group(){
