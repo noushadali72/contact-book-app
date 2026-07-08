@@ -13,13 +13,9 @@
         <a href="/create" class="btn btn-success">Create Contact</a>
     </div>
     <div class="search-bar my-4">
-        <form id="searchForm">
-
             <div class="d-flex align-items-center gap-2">
                 <input name="search" type="text" class="form-control" id="search" placeholder="Type here to search....">
-                <button type="submit" class="btn btn-primary">Search</button>
             </div>
-        </form>
     </div>
     <div id="message"></div>
     <div class="d-flex justify-content-end my-4">
@@ -49,13 +45,13 @@
         </table>
 
 
-<div id="pagination">
-    <nav aria-label="...">
-    <ul class="pagination" id="pagination-links">
-
-  </ul>
-</nav>
+<div id="pagination" class="d-flex justify-content-center mt-4">
+    <nav>
+        <ul class="pagination pagination-md mb-0" id="pagination-links"></ul>
+    </nav>
 </div>
+
+
     </div>
     <div id="modalContainer"></div>
     <div id="deleteToastContainer"></div>
@@ -234,7 +230,6 @@ function handlePagination(totalPages) {
     const paginationLinks = $("#pagination-links");
     paginationLinks.empty();
 
-
     if (totalPages <= 1) {
         $("#pagination").hide();
         return;
@@ -242,26 +237,81 @@ function handlePagination(totalPages) {
 
     $("#pagination").show();
 
-      paginationLinks.append(`
-         <li class="page-item">
-      <button class="page-link" onclick="getPage(${currentPage>1?currentPage-1:currentPage})" ${currentPage>1?"":"disabled"}>Previous</button>
-    </li>
+    // Previous
+    paginationLinks.append(`
+        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+            <a href="javascript:void(0)" class="page-link"
+                onclick="${currentPage > 1 ? `getPage(${currentPage - 1})` : ''}">
+               Previous
+            </a>
+        </li>
     `);
-    
-    for (let i = 1; i <= totalPages; i++) {
+
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPages, currentPage + 2);
+
+    if (start > 1) {
         paginationLinks.append(`
-            <li class="page-item ${currentPage === i ? "active" : ""}">
-                <button class="page-link mx-1" onclick="getPage(${i})">${i}</button>
+            <li class="page-item">
+                <a href="javascript:void(0)" class="page-link"
+                    onclick="getPage(1)">1</a>
+            </li>
+        `);
+
+        if (start > 2) {
+            paginationLinks.append(`
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            `);
+        }
+    }
+
+    for (let i = start; i <= end; i++) {
+        paginationLinks.append(`
+            <li class="page-item ${currentPage === i ? 'active' : ''}">
+                <a href="javascript:void(0)"
+                   class="page-link"
+                   onclick="getPage(${i})">
+                    ${i}
+                </a>
             </li>
         `);
     }
 
+    if (end < totalPages) {
+
+        if (end < totalPages - 1) {
+            paginationLinks.append(`
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            `);
+        }
+
+        paginationLinks.append(`
+            <li class="page-item">
+                <a href="javascript:void(0)"
+                   class="page-link"
+                   onclick="getPage(${totalPages})">
+                    ${totalPages}
+                </a>
+            </li>
+        `);
+    }
+
+
     paginationLinks.append(`
-         <li class="page-item">
-      <a class="page-link" onclick="getPage(${currentPage+1})" ${currentPage<totalPages?"":"disabled"}>Next</a>
-    </li>
+        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+            <a href="javascript:void(0)"
+               class="page-link"
+               onclick="${currentPage < totalPages ? `getPage(${currentPage + 1})` : ''}">
+               Next
+            </a>
+        </li>
     `);
 }
+
 </script>
     
 @endsection
