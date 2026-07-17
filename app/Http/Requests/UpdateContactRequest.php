@@ -34,11 +34,18 @@ class UpdateContactRequest extends FormRequest
                 'required',
                 'email',
                 'max:255',
-                // 'unique:contacts,email',
                 Rule::unique('contacts')->ignore($this->input('id'))
             ],
 
-            'phone' => 'required|string|max:20|regex:/^\+[1-9]\d{1,14}$/',
+            'phone' => [
+
+                'required',
+                'string',
+                'max:20',
+                'regex: /^\+[1-9]\d{1,14}$/',
+                Rule::unique('contacts')->ignore($this->input('id'))
+            ],
+            
             'address' => 'required|string|max:255',
             'notes' => 'required|string',
 

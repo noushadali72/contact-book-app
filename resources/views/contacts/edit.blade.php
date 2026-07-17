@@ -19,6 +19,7 @@
 @section("content")
     <div class="container mt-5">
         <div class="card p-4">
+             <a href="{{ route('contacts.index') }}"><-back</a>
             <h2>Edit Contact</h2>
 
             <div id="message"></div>
@@ -78,108 +79,88 @@
 
 @section('scripts')
     <script>
-        $(document).ready(function(){
-
-            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            var phoneRegex = /^\+?[1-9]\d{1,14}$/;
-            var isValid = true;
-
-            function validateEmail(){
-                var email = $("#email").val().trim();
-                if(email==""){
-                    $("#emailErr").text("Email is Required!");
-                    isValid = false;
-                }else if(!emailRegex.test(email)){
-                    $("#emailErr").text("Email must be valid!");
-                    isValid = false;
-                }else{
-                    
-                    $("#emailErr").text("");
-                }
-            }
-
-            function validatePhone(){
-                var phone = $("#phone").val().trim();
-
-                if(phone==""){
-                    $("#phoneErr").text("Phone no is Required!");
-                    isValid = false;
-                }else if(!phoneRegex.test(phone)){
-                    $("#phoneErr").text("Phone no must be valid!");
-                    isValid = false;
-                }else{
-                    $("#phoneErr").text("");
-                }
-            }
-
-            function validateName(){
-                var name = $("#name").val().trim();
-
-                if(name==""){
-                    $("#nameErr").text("Name is Required!");
-                    isValid = false;
-                }else{
-                    $("#nameErr").text("");
-                }
-            }
-
-               function validateNotes(){
-                var notes = $("#notes").val().trim();
-
-                if(notes==""){
-                    $("#notesErr").text("Notes is Required!");
-                    isValid = false;
-                }else{
-                    $("#notesErr").text("");
-                }
-            }
-
-               function validateGroup(){
-                var group = $("#group").val().trim();
-
-                if(group==""){
-                    $("#groupErr").text("Group is Required!");
-                    isValid = false;
-                }else{
-                    $("#groupErr").text("");
-                }
-            }
-
-            function validateAddress(){
-                var address = $("#address").val().trim();
-
-                if(address==""){
-                    $("#addressErr").text("Address is Required!");
-                    isValid = false;
-                }else{
-                    $("#addressErr").text("");
-                }
-            }
 
 
-            $("#name").on("input blur",validateName);
-            $("#email").on("input blur",validateEmail);
-            $("#phone").on("input blur",validatePhone);
-            $("#notes").on("input blur",validateNotes);
-            $("#group").on("input blur",validateGroup);
-            $("#address").on("input blur",validateAddress);
+function validateForm() {
+
+    let isValid = true;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+
+    const fields = {
+        name: {
+            value: $("#name").val().trim(),
+            required: "Name is Required!"
+        },
+        email: {
+            value: $("#email").val().trim(),
+            required: "Email is Required!",
+            regex: emailRegex,
+            invalid: "Email must be valid!"
+        },
+        phone: {
+            value: $("#phone").val().trim(),
+            required: "Phone no is Required!",
+            regex: phoneRegex,
+            invalid: "Phone no must be valid!"
+        },
+        notes: {
+            value: $("#notes").val().trim(),
+            required: "Notes is Required!"
+        },
+        group: {
+            value: $("#group").val().trim(),
+            required: "Group is Required!"
+        },
+        address: {
+            value: $("#address").val().trim(),
+            required: "Address is Required!"
+        }
+    };
+
+    let keys = Object.keys(fields);
+
+    keys.forEach(function (key) {
+        let field = fields[key];
+        let error = "";
+
+        if (field.value === "") {
+            error = field.required;
+            isValid = false;
+        } else if (field.regex && !field.regex.test(field.value)) {
+            error = field.invalid;
+            isValid = false;
+        }
+
+        $("#" + key + "Err").text(error);
+    });
+
+    return isValid;
+}
 
 
-            $("#form").on("submit",function(e){
-                e.preventDefault();
-                isValid = true;
-                validateName();
-                validateEmail();
-                validatePhone();
-                validateNotes();
-                validateGroup();
-                validateAddress();
+$("#phone").on("input", function () {
+    let value = $(this).val();
 
-                if(isValid){
+    value = value.replace(/(?!^\+)[^\d]/g, "");
+
+    $(this).val(value);
+
+});
+
+$("#name,#email,#phone,#notes,#group,#address")
+    .on("input blur", validateForm);
+
+$("#form").on("submit", function (e) {
+    e.preventDefault();
+
+    if (validateForm()) {
+
                     let form = document.getElementById("form");
                     let formdata = new FormData(form);
                     $.ajax({
-                        url:'{{ route('contacts.update') }}',
+                        url:"{{ route('contacts.update',$contact->id) }}",
                         type:'PUT',
                         processData:false,
                         contentType: false,
@@ -196,10 +177,11 @@
                                 $("#notesErr").text("");
                                 $("#groupErr").text("");
 
-                                // $("#message").html(`<div class="alert alert-success" role="alert">
-                                // ${res.message}
-                                //     </div>`);
                                     showUpdateToast("success",res.message);
+
+                                    setTimeout(function(){
+                                        window.location.href = "/";
+                                    },1000)
                         },
                         error: function(xhr,status,error){
                           
@@ -214,35 +196,31 @@
                                 $("#groupErr").text(errors.group_id||"");
                         
                             }else{
-                               
-                                // $("#message").html(`<div class="alert alert-danger" role="alert">
-                                //     Unable to Update Contact Try Again!
-                                // </div>`);
-
                                 showUpdateToast("danger","Unable to Update Contact Try Again!");
                             }
                          
                         }
                     });
-                }
-            })
+                
+   
+    }
+});
+     
 
-        });
+function showUpdateToast(type,message){
 
-            function showUpdateToast(type,message){
         $("#updateToastContainer").html(`
         
             <div id="toast" class="toast position-fixed bottom-0 end-0 m-5 p-3 align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-  <div class="d-flex">
-    <div class="toast-body">
-    ${message}
-    </div>
-    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-  </div>
-</div>
+                <div class="d-flex">
+                    <div class="toast-body">
+                    ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                </div>
         
         `);
-
 
         $(`#toast`).toast("show");
     }

@@ -21,10 +21,12 @@
     <div class="d-flex justify-content-end my-4">
         <span>Sort By:</span>
         <select name="sortBy" id="sortBy">
-            <option value="lf">Latest First</option>
-            <option value="of">Oldest First</option>
-            <option value="asc">Ascending(Name)</option>
-            <option value="desc">Descending(Name)</option>
+            <option value="name">Name</option>
+            <option value="created_at" selected>Date</option>
+        </select>
+        <select name="direction" id="sortDirection">
+                <option value="asc">Ascending</option>
+                <option value="desc" selected>Descending</option>
         </select>
     </div>
     <table class="table table-bordered">
@@ -68,7 +70,8 @@
     var totalPages = 0;
     var currentPage =1;
     var searchQuery = "";
-    var sortBy = "";
+    var sortBy = "created_at";
+    var sortDirection = "desc";
 
     $(document).ready(function(){
  
@@ -90,6 +93,15 @@
             sortBy = $("#sortBy").val().trim();
             getPage(1);
         });
+
+        $("#sortDirection").on("change",function(e){
+            if($("#sortDirection").val().trim()==""){
+                return;
+            }
+
+            sortDirection = $("#sortDirection").val().trim();
+            getPage();
+        })
        getPage(1);
 
     });
@@ -108,7 +120,8 @@
         data: {
             page: pageNo,
             searchQuery: searchQuery,
-            sortBy: sortBy
+            sortBy: sortBy,
+            sortDirection: sortDirection
         },
         success: function (res) {
             if (!res.contacts) return;
@@ -150,10 +163,11 @@
     });
 
 }
+   
     function deleteContact(id){
-       console.log("delete called")
+        let url = `/${id}`;
         $.ajax({
-            url:`/delete/${id}`,
+            url:url,
             type:"DELETE",
             processData: false,
             headers:{
@@ -161,10 +175,8 @@
             },
             success: function(res){
                 if(res.message){
-                
                         showDeleteToast("success",res.message,id);
                         getPage(currentPage);
-
                     }
                     
                 $(`#modal-${id}`).modal("hide");

@@ -28,7 +28,7 @@ class StoreContactRequest extends FormRequest
                 'unique:contacts,email',
             ],
 
-            'phone' => 'required|string|max:20|regex:/^\+[1-9]\d{1,14}$/',
+            'phone' => 'required|string|max:20|unique:contacts,phone|regex:/^\+[1-9]\d{1,14}$/',
             'address' => 'required|string|max:255',
             'notes' => 'required|string',
 
@@ -43,15 +43,16 @@ class StoreContactRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Name is required.',
-            'email.required' => 'Email is required.',
-            'email.email' => 'Please enter a valid email address.',
-            'email.unique' => 'Email already exists.',
-            'phone.required' => 'Phone number is required.',
+            'name.required' => 'Name is required!',
+            'email.required' => 'Email field is required!',
+            'email.email' => 'Please enter a valid email address!',
+            'email.unique' => 'Email already exists!',
+            'phone.required' => 'Phone number field is required!',
+            'phone.unique' => 'Phone number already exists!',
             'phone.regex'=>"Phone no must be valid!",
-            'address.required' => 'Address is required.',
-            'notes.required' => 'Notes are required.',
-            'group_id.required' => 'Please select a group.',
+            'address.required' => 'Address field is required!',
+            'notes.required' => 'Notes field is required!',
+            'group_id.required' => 'Please select a group!',
             'group_id.exists' => 'The selected group is invalid.',
         ];
     }

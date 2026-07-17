@@ -17,10 +17,16 @@
            
         }
     </style>
+
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet"/>
+
+
 @endsection
 @section("content")
     <div class="container mt-5">
         <div class="card p-4">
+            <a href="{{ route('contacts.index') }}"><-back</a>
             <h2>Add new Contact</h2>
 
             <div id="message"></div>
@@ -60,15 +66,10 @@
 
                 <div class="mb-3">
                     <label for="group" class="form-label">Group<sup>*</sup>:</label>
-                    <select name="group_id" id="group" class="form-control">
-                        <option value="" selected></option>
-                        @foreach ($groups as $group)
-                            <option value="{{ $group->id }}">{{ $group->name }}</option>
-                        @endforeach
-                    </select>
+                    <select name="group_id" id="group" class="form-control group">
+                     </select>
                  <span class="error" id="groupErr"></span>
                 </div>
-
                 <button class="btn btn-primary" id="submit" type="submit">Submit</button>
 
             </form>
@@ -78,105 +79,94 @@
 @endsection
 
 @section('scripts')
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js">
+</script>
+
+
     <script>
-        $(document).ready(function(){
-
-            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            var phoneRegex = /^\+?[1-9]\d{1,14}$/;
-            var isValid = true;
-
-            function validateEmail(){
-                var email = $("#email").val().trim();
-                if(email==""){
-                    $("#emailErr").text("Email is Required!");
-                    isValid = false;
-                }else if(!emailRegex.test(email)){
-                    $("#emailErr").text("Email must be valid!");
-                    isValid = false;
-                }else{
-                    
-                    $("#emailErr").text("");
-                }
-            }
-
-            function validatePhone(){
-                var phone = $("#phone").val().trim();
-
-                if(phone==""){
-                    $("#phoneErr").text("Phone no is Required!");
-                    isValid = false;
-                }else if(!phoneRegex.test(phone)){
-                    $("#phoneErr").text("Phone no must be valid!");
-                    isValid = false;
-                }else{
-                    $("#phoneErr").text("");
-                }
-            }
-
-            function validateName(){
-                var name = $("#name").val().trim();
-
-                if(name==""){
-                    $("#nameErr").text("Name is Required!");
-                    isValid = false;
-                }else{
-                    $("#nameErr").text("");
-                }
-            }
-
-               function validateNotes(){
-                var notes = $("#notes").val().trim();
-
-                if(notes==""){
-                    $("#notesErr").text("Notes is Required!");
-                    isValid = false;
-                }else{
-                    $("#notesErr").text("");
-                }
-            }
-
-               function validateGroup(){
-                var group = $("#group").val().trim();
-
-                if(group==""){
-                    $("#groupErr").text("Group is Required!");
-                    isValid = false;
-                }else{
-                    $("#groupErr").text("");
-                }
-            }
-
-            function validateAddress(){
-                var address = $("#address").val().trim();
-
-                if(address==""){
-                    $("#addressErr").text("Address is Required!");
-                    isValid = false;
-                }else{
-                    $("#addressErr").text("");
-                }
-            }
+      
 
 
-            $("#name").on("input blur",validateName);
-            $("#email").on("input blur",validateEmail);
-            $("#phone").on("input blur",validatePhone);
-            $("#notes").on("input blur",validateNotes);
-            $("#group").on("input blur",validateGroup);
-            $("#address").on("input blur",validateAddress);
+function validateForm() {
+
+    let isValid = true;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+
+    const fields = {
+        name: {
+            value: $("#name").val().trim(),
+            required: "Name is Required!"
+        },
+        email: {
+            value: $("#email").val().trim(),
+            required: "Email is Required!",
+            regex: emailRegex,
+            invalid: "Email must be valid!"
+        },
+        phone: {
+            value: $("#phone").val().trim(),
+            required: "Phone no is Required!",
+            regex: phoneRegex,
+            invalid: "Phone no must be valid!"
+        },
+        notes: {
+            value: $("#notes").val().trim(),
+            required: "Notes is Required!"
+        },
+        group: {
+            value: $("#group").val().trim(),
+            required: "Group is Required!"
+        },
+        address: {
+            value: $("#address").val().trim(),
+            required: "Address is Required!"
+        }
+    };
+
+    let keys = Object.keys(fields);
+
+    keys.forEach(function (key) {
+        let field = fields[key];
+        let error = "";
+
+        if (field.value === "") {
+            error = field.required;
+            isValid = false;
+        } else if (field.regex && !field.regex.test(field.value)) {
+            error = field.invalid;
+            isValid = false;
+        }
+
+        $("#" + key + "Err").text(error);
+    });
+
+    return isValid;
+}
 
 
-            $("#form").on("submit",function(e){
-                e.preventDefault();
-                isValid = true;
-                validateName();
-                validateEmail();
-                validatePhone();
-                validateNotes();
-                validateGroup();
-                validateAddress();
 
-                if(isValid){
+
+$("#phone").on("input", function () {
+    let value = $(this).val();
+
+    value = value.replace(/(?!^\+)[^\d]/g, "");
+
+    $(this).val(value);
+
+});
+
+$("#name,#email,#phone,#notes,#group,#address")
+    .on("input blur", validateForm);
+
+
+    $("#form").on("submit", function (e) {
+    e.preventDefault();
+
+    if (validateForm()) {
+
                     let form = document.getElementById("form");
                     let formdata = new FormData(form);
                     $.ajax({
@@ -190,7 +180,6 @@
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                 },
                         success: function(res){
-                           
                                 $("#nameErr").text("");
                                 $("#emailErr").text("");
                                 $("#phoneErr").text("");
@@ -198,14 +187,18 @@
                                 $("#notesErr").text("");
                                 $("#groupErr").text("");
 
-                                showCreateToast("success",res.message);
-                                $("#form")[0].reset();
-                            },
+                                    showCreateToast("success",res.message);
+
+                                    $("#form")[0].reset();
+                                    setTimeout(function(){
+                                        window.location.href = "/";
+                                    },1000)
+                        },
                         error: function(xhr,status,error){
-                            
+                          
                             if(xhr.responseJSON && xhr.responseJSON.errors){
-                                var errors = xhr.responseJSON.errors;
                                 
+                                var errors = xhr.responseJSON.errors;
                                 $("#nameErr").text(errors.name||"");
                                 $("#emailErr").text(errors.email||"");
                                 $("#phoneErr").text(errors.phone||"");
@@ -214,18 +207,18 @@
                                 $("#groupErr").text(errors.group_id||"");
                         
                             }else{
-                                showCreateToast("danger","Unable to Create Contact Please Try again!");
+                                showCreateToast("danger","Unable to Create Contact Try Again!");
                             }
                          
                         }
                     });
-                }
-            })
+                
+   
+    }
+});
 
-        });
 
-
-             function showCreateToast(type,message){
+function showCreateToast(type,message){
         $("#createToastContainer").html(`
         
             <div id="toast" class="toast position-fixed bottom-0 end-0 m-5 p-3 align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -244,7 +237,37 @@
     }
 
 
-      
+$(".group").select2({
+    placeholder: "Search Group to Select",
+    minimumInputLength: 2,
+    ajax: {
+        url: "{{ route('searchGroup') }}",
+        type: "get",
+        delay: 400,
+        data: function(params){
+            let data = {
+                searchGroup: params.term
+            }
+            return data;
+        },
+       processResults: function(data){
+        let groups = data.groups;
+            return {
+                results: groups.map(function(item){
+                    return {
+                        text: item.name,
+                        id: item.id
+                    }
+                })
+            }
+       },
+        
+        error: function(xhr, status, error){
+            console.log(xhr)
+        }
+    }
+  
+});
 
     </script>
 @endsection

@@ -15,37 +15,48 @@ class ContactController extends Controller
      */
     public function index(Request $request)
     {
-        $searchQuery = $request->input("searchQuery")??"";
-        $sortBy = $request->input("sortBy")??"";
 
-        if($sortBy=="of"){
-            $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("created_at","asc")->paginate(10);
+    $records = min($request->integer('records',10),100);
+   
+        $contacts = Contact::query()->when($request->filled("searchQuery"), function($query) use($request){
             
-         }else if($sortBy=="lf"){
-                
-                $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("created_at","desc")->paginate(10);
-                
-             }else if($sortBy=="asc"){
-                    
-                    
-                    $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("name","asc")->paginate(10);
-                    
-             }else if("desc"){
-                
-                    $contacts = Contact::query()->search($searchQuery)->with('group')->orderBy("name","desc")->paginate(10);
-                
-            }
+            $searchQuery = $request->input("searchQuery");
 
-        if($request->ajax()){
-            return response()->json([
-                'status'=>200,
-                "searchQuery"=>$searchQuery,
-                "sortBy"=> $sortBy,
-                'message'=>'Data Fetched Successfully!',
-                'contacts'=>$contacts
-            ]);
+            $query->where('name','like',"%{$searchQuery}%")
+            ->orWhere('email','like',"%{$searchQuery}%")
+            ->orWhereHas("group",function($relationQuery) use($searchQuery){
+                $relationQuery->where("name","like","%{$searchQuery}%");
+            });
+
+
+        })->when($request->filled("sortBy"),function($query) use($request){
+            $sortBy = $request->input("sortBy","created_at");
+            $direction = $request->input("sortDirection","desc");
+
+            $query->orderBy($sortBy,$direction);
+
+        },
+         function($query){
+                $query->orderBy("created_at","desc");
+            }
+        
+        )->with('group')->paginate($records);
+
+
+        if(!$request->ajax()){
+            return view("contacts.list", compact('contacts'));
         }
-        return view("contacts.list", compact('contacts'));
+
+        return response()->json([
+                'status'=>200,
+                'searchQuery'=>$request->input("searchQuery"),
+                'sortBy'=> $request->input("sortBy"),
+                'sortDirection'=> $request->input("sortDirection"),
+                'records'=>$records,
+                'message'=>'Data Fetched Successfully!',
+                'contacts'=>$contacts,
+                'request'=>$request->all()
+            ],200);
     }
 
     /**
@@ -53,7 +64,8 @@ class ContactController extends Controller
      */
     public function create()
     {
-         $groups = Group::limit(20)->get();
+        $groups = Group::limit(20)->get();
+        
         return view("contacts.create",compact('groups'));
     }
 
@@ -83,20 +95,10 @@ class ContactController extends Controller
 }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Contact $contact)
     {
-        $contact = Contact::find($id);
-        
         $groups = Group::limit(20)->get();
         if(!$contact){
             return abort(404,"Contact Not Found!");
@@ -107,17 +109,14 @@ class ContactController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateContactRequest $request)
+    public function update(UpdateContactRequest $request, Contact $contact)
     {
         $data = $request->validated();
-
-        $contact = Contact::find($request->id);
-
         $contact->update($data);
-        $contact->save();
 
         return response()->json([
             'status'=>200,
+            'contact'=>$contact,
             'message'=>'Contact Updated Successfully!'
         ]);
     }
@@ -127,19 +126,39 @@ class ContactController extends Controller
      */
     public function destroy($id)
     {
-        $contact = Contact::find($id);
+      $contact = Contact::find($id);
         if(!$contact){
             return response()->json([
                 'status'=>404,
                 'message'=>'Contact Not Found!'
                 ],404);
-                }
+            }
                 
-            // $contact->delete();
+            $contact->delete();
             return response()->json([
                 'status'=>200,
                 'message'=>'Contact Deleted Successfully!'
             ]);
 
+    }
+
+    public function searchGroup(Request $request){
+
+    $groups = Group::query()
+        ->when($request->filled('searchGroup'), function($query) use($request){
+     
+            $searchGroup = $request->input("searchGroup");
+
+            $query->where('name','like',"%{$searchGroup}%");
+
+        })->limit(5)->get();
+
+    
+    return response()->json([
+            'status'=>200,
+            'message'=>'Groups Fetched Successfully!',
+            'groups'=>$groups,
+            'query'=>$request->input('searchGroup')
+        ],200);
     }
 }
